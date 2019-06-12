@@ -142,6 +142,10 @@ void Musketeer::setHP(int HP) {
     * You can write anything in this block (make sure there is no errors) and complete below methods
 */
 void Musketeer::finalize() {
+    free(this->manager);
+    free(this->pC1);
+    free(this->pC2);
+    free(this->pC3);
     // TO-DO
 }
 /* End block: TO DO */
