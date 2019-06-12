@@ -106,6 +106,10 @@ void Battle::display() {
     * Output: None
 */
 void Battle::struggle() {
+    for(int i = 0; i < this->numOfEvents; i++){
+        cout<<this->events[i]<<endl;
+    }
+
     // TO-DO
 }
 
@@ -115,6 +119,10 @@ void Battle::struggle() {
     * Output: None
 */
 void Battle::finalize() {
+    free(this->musketeers);
+    free(this->events);
+    free(this->manager);
+    
     // TO-DO
 }
 /* End block: TO DO */
