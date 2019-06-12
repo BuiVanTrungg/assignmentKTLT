@@ -109,6 +109,14 @@ void Battle::struggle() {
 
     // init the current musketeer
     int currentMusketeer = this->firstMusketeer;
+    int musketeerShareCrystal = this->firstMusketeer;
+
+    // init HP for musketeer
+    this->musketeers[0].setHP(999);
+    this->musketeers[1].setHP(900);
+    this->musketeers[2].setHP(888);
+    this->musketeers[3].setHP(777);
+
 
 
     for(int i = 0; i < this->numOfEvents; i++){
@@ -130,89 +138,33 @@ void Battle::struggle() {
         // Sapphire - Sky
         // Emerald - Land
         // Aquamarine - Sea
-        
-        // Quezacolt attack - Sky monster - 0.65
-        }else if(this->events[i] % 100 == -11){
-            if(this->musketeers[currentMusketeer].getCystalPointer(1) != NULL){
-                if(*(this->musketeers[currentMusketeer].getCystalPointer(1)) > 0){
-                    *this->musketeers[currentMusketeer].getCystalPointer(1) -= 1 ;
-                }
-                if(*(this->musketeers[currentMusketeer].getCystalPointer(1)) == 0){
-                    this->manager->deallocate(this->musketeers[currentMusketeer].getCystalPointer(1));
-                    this->musketeers[currentMusketeer].setCystalPointer(1,NULL);
-                    
-                }
-            }
-
-        // Bahamut attack - Sky monster - 0.95
-        }else if(this->events[i] % 100 == -12){
-            if(this->musketeers[currentMusketeer].getCystalPointer(1) != NULL){
-                if(*(this->musketeers[currentMusketeer].getCystalPointer(1)) > 0){
-                    *this->musketeers[currentMusketeer].getCystalPointer(1) -= 1 ;
-                }
-                if(*(this->musketeers[currentMusketeer].getCystalPointer(1)) == 0){
-                    this->manager->deallocate(this->musketeers[currentMusketeer].getCystalPointer(1));
-                    this->musketeers[currentMusketeer].setCystalPointer(1,NULL);
-
-                }
-            }
-
-        // Cerberus attack - Land monster - 0.85
-        }else if(this->events[i] % 100 == -21){
-            if(this->musketeers[currentMusketeer].getCystalPointer(2) != NULL){
-                if(*(this->musketeers[currentMusketeer].getCystalPointer(2)) > 0){
-                    *this->musketeers[currentMusketeer].getCystalPointer(2) -= 1 ;
-                }
-                if(*(this->musketeers[currentMusketeer].getCystalPointer(2)) == 0){
-                    this->manager->deallocate(this->musketeers[currentMusketeer].getCystalPointer(2));
-                    this->musketeers[currentMusketeer].setCystalPointer(2,NULL);
-
-                }
-            }
-
-        // Ifrit attack - Land monster - 0.9
-        }else if(this->events[i] % 100 == -22){
-            if(this->musketeers[currentMusketeer].getCystalPointer(2) != NULL){
-                if(*(this->musketeers[currentMusketeer].getCystalPointer(2)) > 0){
-                    *this->musketeers[currentMusketeer].getCystalPointer(2) -= 1 ;
-                }
-                if(*(this->musketeers[currentMusketeer].getCystalPointer(2)) == 0){
-                    this->manager->deallocate(this->musketeers[currentMusketeer].getCystalPointer(2));
-                    this->musketeers[currentMusketeer].setCystalPointer(2,NULL);
-
-                }
-            }
-
-        // Siren attack - Sea monster - 0.4
-        }else if(this->events[i] % 100 == -31){
-            if(this->musketeers[currentMusketeer].getCystalPointer(3) != NULL){
-                if(*(this->musketeers[currentMusketeer].getCystalPointer(3)) > 0){
-                    *this->musketeers[currentMusketeer].getCystalPointer(3) -= 1 ;
-                }
-                if(*(this->musketeers[currentMusketeer].getCystalPointer(3)) == 0){
-                    this->manager->deallocate(this->musketeers[currentMusketeer].getCystalPointer(3));
-                    this->musketeers[currentMusketeer].setCystalPointer(3,NULL);
-
-                }
-            }
-
-        // Leviathan attack - Sea monster - 1
-        }else if(this->events[i] % 100 == -32){
-            if(this->musketeers[currentMusketeer].getCystalPointer(3) != NULL){
-                if(*(this->musketeers[currentMusketeer].getCystalPointer(3)) > 0){
-                    *this->musketeers[currentMusketeer].getCystalPointer(3) -= 1 ;
-                    
-                }
-                if(*(this->musketeers[currentMusketeer].getCystalPointer(3)) == 0){
-                    this->manager->deallocate(this->musketeers[currentMusketeer].getCystalPointer(3));
-                    this->musketeers[currentMusketeer].setCystalPointer(3,NULL);
-                }
-            }
-
-
         }
-
-
+        else{
+            int typeOfCrystal = (this->events[i] % 100)*-1 / 10;
+            bool checkCrystal = false;
+            for(int j = 0; j < 4; j++){
+                if(this->musketeers[musketeerShareCrystal].getCystalPointer(typeOfCrystal) != NULL){
+                    checkCrystal = true;
+                    break;
+                }      
+                if(++musketeerShareCrystal > 3){
+                    musketeerShareCrystal = 0;
+                }
+            }
+            // has crystal suitable
+            if(checkCrystal){
+                if(*(this->musketeers[musketeerShareCrystal].getCystalPointer(typeOfCrystal)) > 0){
+                    *this->musketeers[musketeerShareCrystal].getCystalPointer(typeOfCrystal) -= 1 ;
+                    
+                }
+                if(*(this->musketeers[musketeerShareCrystal].getCystalPointer(typeOfCrystal)) == 0){
+                    this->manager->deallocate(this->musketeers[musketeerShareCrystal].getCystalPointer(typeOfCrystal));
+                    this->musketeers[musketeerShareCrystal].setCystalPointer(typeOfCrystal,NULL);
+                }
+            }
+            // don't have crystal
+            
+        }
     }
     
 
