@@ -106,23 +106,27 @@ void Battle::display() {
     * Output: None
 */
 void Battle::struggle() {
+    // define initial HP for musketeer
+    const int dArtHP = 999;
+    const int ArthHP = 900;
+    const int PortHP = 888;
+    const int AramHP = 777;
+
 
     // init the current musketeer
     int currentMusketeer = this->firstMusketeer;
-    int musketeerShareCrystal = this->firstMusketeer;
+    
 
     // init HP for musketeer
-    this->musketeers[0].setHP(999);
-    this->musketeers[1].setHP(900);
-    this->musketeers[2].setHP(888);
-    this->musketeers[3].setHP(777);
+    this->musketeers[0].setHP(dArtHP);
+    this->musketeers[1].setHP(ArthHP);
+    this->musketeers[2].setHP(PortHP);
+    this->musketeers[3].setHP(AramHP);
 
 
 
     for(int i = 0; i < this->numOfEvents; i++){
-        int powerOfMonster;
-        // init power of monster
-        // if()
+        int musketeerShareCrystal = currentMusketeer;
         // pick up a Crystal
         if(this->events[i] / 10 == 1 || this->events[i] / 10 == 2 || this->events[i] / 10 == 3){
             int typeOfCrystal = this->events[i] / 10;
@@ -145,7 +149,7 @@ void Battle::struggle() {
         else{
             int typeOfCrystal = (this->events[i] % 100)*-1 / 10;
             bool checkCrystal = false;
-            for(int j = 0; j < 4; j++){
+            for(int j = 0; j < NUM_OF_MUSKETEERS; j++){
                 if(this->musketeers[musketeerShareCrystal].getCystalPointer(typeOfCrystal) != NULL){
                     checkCrystal = true;
                     break;
@@ -154,8 +158,121 @@ void Battle::struggle() {
                     musketeerShareCrystal = 0;
                 }
             }
-            // has crystal suitable
-            if(checkCrystal){
+            // don't have crystal
+
+            // initial monster power
+            float powerOfMonster;
+            switch (this->events[i] % 100)
+            {
+            case -11:
+                powerOfMonster = 0.65;
+                break;
+            case -12:
+                powerOfMonster = 0.95;
+                break;
+            case -21:
+                powerOfMonster = 0.85;
+                break;
+            case -22:
+                powerOfMonster = 0.9;
+                break;
+            case -31:
+                powerOfMonster = 0.4;
+                break;
+            case -32:
+                powerOfMonster = 1;
+                break;
+            } 
+            // calculate the pow
+            int pow = powerOfMonster;
+            for(int j = 0; j < currentMusketeer; j++){
+                pow *= powerOfMonster;
+            }
+            // calculate K
+            int K = (this->events[i]+1)*(-1);
+            int count = this->events[i];
+            while(K > 0){
+                bool check = true;
+                for(int j = K-1; j > 1; j--){
+                    if(K % j == 0){
+                        check = false;
+                        break;
+                    }
+                }
+                if(check)
+                    break;
+                K--;
+            }
+            int damage = (this->events[i]*(-1)*powerOfMonster + (pow*K)%100);
+             // musketeer healing
+            for(int j = 0; j < NUM_OF_MUSKETEERS; j++){
+                if (j != currentMusketeer){
+                    int initHP;
+                    if(j == 0)
+                        initHP = dArtHP;
+                    else if(j == 1)
+                        initHP = ArthHP;
+                    else if(j == 2)
+                        initHP = PortHP;
+                    else
+                        initHP = AramHP;
+                    int heal = (this->musketeers[j].getHP() + 200 - j*50) > initHP ? initHP : (this->musketeers[j].getHP() + 200 - j*50);
+                    this->musketeers[j].setHP(heal);
+                }
+            }
+            // musketeer not Aramis
+            if(currentMusketeer == 3 && !checkCrystal){
+                // Aramis forge
+                int walk = 3;
+                int crystal = -1;
+                for(int j = 0; j < NUM_OF_MUSKETEERS; j++){
+                    for(int k = 0; k < NUM_OF_CYSTAL; k++){
+                        if(this->musketeers[walk].getCystalPointer(k) != NULL){
+                            int lvCrystal = *(this->musketeers[walk].getCystalPointer(k));
+                            if(lvCrystal > 1 && lvCrystal*10 < this->musketeers[3].getHP()){
+                                crystal = k;
+                                break;
+                            }
+                        }
+                    }
+                    if(crystal != -1){
+                        checkCrystal = true;                        
+                        break;
+                    }
+                    if(++walk > 3){
+                        walk = 0;
+                    }
+                }
+
+                if(checkCrystal){
+                    // new crystal level = old crystal level - 1
+                    int *newCrystal = NULL;
+                    this->manager->allocate(newCrystal);
+                    *newCrystal = *(this->musketeers[walk].getCystalPointer(crystal)) - 1;
+
+                    // Crystal belong to Aramis
+                    this->musketeers[3].setCystalPointer(typeOfCrystal,newCrystal);
+                    
+                    // HP of Aramis -= 10*old crystal level
+                    this->musketeers[3].setHP(this->musketeers[3].getHP() - 10*(*newCrystal + 1));
+                }
+
+
+            }
+            if(!checkCrystal){
+                // musketeer being attack
+                if(this->musketeers[currentMusketeer].getHP() - damage < 0){
+                    this->musketeers[currentMusketeer].setHP(0);
+                    // jump to healing mode
+                }else{
+                    this->musketeers[currentMusketeer].setHP(this->musketeers[currentMusketeer].getHP() - damage);
+                }
+                // Quezacolt attack
+                if ((this->events[i] % 100) == -11 || this->musketeers[currentMusketeer].getHP() == 0){
+                    currentMusketeer = (currentMusketeer + 1) > 3 ? 0 : currentMusketeer + 1;
+                }
+
+            }else{
                 if(*(this->musketeers[musketeerShareCrystal].getCystalPointer(typeOfCrystal)) > 0){
                     *this->musketeers[musketeerShareCrystal].getCystalPointer(typeOfCrystal) -= 1 ;
                     
@@ -165,8 +282,6 @@ void Battle::struggle() {
                     this->musketeers[musketeerShareCrystal].setCystalPointer(typeOfCrystal,NULL);
                 }
             }
-            // don't have crystal
-            int damage = this->events[i]*(-1)*
         }
     }
     
