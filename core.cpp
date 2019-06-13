@@ -163,7 +163,52 @@ void Battle::struggle() {
                 }
             }
             // don't have crystal
-            
+
+            // initial monster power
+            float powerOfMonster;
+            switch (this->events[i] % 100)
+            {
+            case -11:
+                powerOfMonster = 0.65;
+                break;
+            case -12:
+                powerOfMonster = 0.95;
+                break;
+            case -21:
+                powerOfMonster = 0.85;
+                break;
+            case -22:
+                powerOfMonster = 0.9;
+                break;
+            case -31:
+                powerOfMonster = 0.4;
+                break;
+            case -32:
+                powerOfMonster = 1;
+                break;
+            } 
+            // calculate the pow
+            int pow = powerOfMonster;
+            for(int j = 0; j < currentMusketeer; j++){
+                pow *= powerOfMonster;
+            }
+            // calculate K
+            int K = (this->events[i]+1)*(-1);
+            int count = this->events[i];
+            while(K > 0){
+                bool check = true;
+                for(int j = K-1; j > 1; j--){
+                    if(K % j == 0){
+                        check = false;
+                        break;
+                    }
+                }
+                if(check)
+                    break;
+                K--;
+            }
+            int damage = (this->events[i]*(-1)*powerOfMonster + pow*K);
+            damage = damage % 100;
         }
     }
     
