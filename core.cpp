@@ -106,20 +106,27 @@ void Battle::display() {
     * Output: None
 */
 void Battle::struggle() {
+    // define initial HP for musketeer
+    const int dArtHP = 999;
+    const int ArthHP = 900;
+    const int PortHP = 888;
+    const int AramHP = 777;
+
 
     // init the current musketeer
     int currentMusketeer = this->firstMusketeer;
-    int musketeerShareCrystal = this->firstMusketeer;
+    
 
     // init HP for musketeer
-    this->musketeers[0].setHP(999);
-    this->musketeers[1].setHP(900);
-    this->musketeers[2].setHP(888);
-    this->musketeers[3].setHP(777);
+    this->musketeers[0].setHP(dArtHP);
+    this->musketeers[1].setHP(ArthHP);
+    this->musketeers[2].setHP(PortHP);
+    this->musketeers[3].setHP(AramHP);
 
 
 
     for(int i = 0; i < this->numOfEvents; i++){
+        int musketeerShareCrystal = currentMusketeer;
         // pick up a Crystal
         if(this->events[i] / 10 == 1 || this->events[i] / 10 == 2 || this->events[i] / 10 == 3){
             int typeOfCrystal = this->events[i] / 10;
@@ -142,24 +149,13 @@ void Battle::struggle() {
         else{
             int typeOfCrystal = (this->events[i] % 100)*-1 / 10;
             bool checkCrystal = false;
-            for(int j = 0; j < 4; j++){
+            for(int j = 0; j < NUM_OF_MUSKETEERS; j++){
                 if(this->musketeers[musketeerShareCrystal].getCystalPointer(typeOfCrystal) != NULL){
                     checkCrystal = true;
                     break;
                 }      
                 if(++musketeerShareCrystal > 3){
                     musketeerShareCrystal = 0;
-                }
-            }
-            // has crystal suitable
-            if(checkCrystal){
-                if(*(this->musketeers[musketeerShareCrystal].getCystalPointer(typeOfCrystal)) > 0){
-                    *this->musketeers[musketeerShareCrystal].getCystalPointer(typeOfCrystal) -= 1 ;
-                    
-                }
-                if(*(this->musketeers[musketeerShareCrystal].getCystalPointer(typeOfCrystal)) == 0){
-                    this->manager->deallocate(this->musketeers[musketeerShareCrystal].getCystalPointer(typeOfCrystal));
-                    this->musketeers[musketeerShareCrystal].setCystalPointer(typeOfCrystal,NULL);
                 }
             }
             // don't have crystal
@@ -207,8 +203,86 @@ void Battle::struggle() {
                     break;
                 K--;
             }
-            int damage = (this->events[i]*(-1)*powerOfMonster + pow*K);
-            damage = damage % 100;
+            int damage = (this->events[i]*(-1)*powerOfMonster + (pow*K)%100);
+             // musketeer healing
+            for(int j = 0; j < NUM_OF_MUSKETEERS; j++){
+                if (j != currentMusketeer){
+                    int initHP;
+                    if(j == 0)
+                        initHP = dArtHP;
+                    else if(j == 1)
+                        initHP = ArthHP;
+                    else if(j == 2)
+                        initHP = PortHP;
+                    else
+                        initHP = AramHP;
+                    int heal = (this->musketeers[j].getHP() + 200 - j*50) > initHP ? initHP : (this->musketeers[j].getHP() + 200 - j*50);
+                    this->musketeers[j].setHP(heal);
+                }
+            }
+            // musketeer not Aramis
+            if(currentMusketeer == 3 && !checkCrystal){
+                // Aramis forge
+                int walk = 3;
+                int crystal = -1;
+                for(int j = 0; j < NUM_OF_MUSKETEERS; j++){
+                    for(int k = 0; k < NUM_OF_CYSTAL; k++){
+                        if(this->musketeers[walk].getCystalPointer(k) != NULL){
+                            int lvCrystal = *(this->musketeers[walk].getCystalPointer(k));
+                            if(lvCrystal > 1 && lvCrystal*10 < this->musketeers[3].getHP()){
+                                crystal = k;
+                                break;
+                            }
+                        }
+                    }
+                    if(crystal != -1){
+                        checkCrystal = true;                        
+                        break;
+                    }
+                    if(++walk > 3){
+                        walk = 0;
+                    }
+                }
+
+                if(checkCrystal){
+                    // new crystal level = old crystal level - 1
+                    int *newCrystal = NULL;
+                    this->manager->allocate(newCrystal);
+                    *newCrystal = *(this->musketeers[walk].getCystalPointer(crystal)) - 1;
+
+                    // Crystal belong to Aramis
+                    this->musketeers[3].setCystalPointer(typeOfCrystal,newCrystal);
+                    
+                    // HP of Aramis -= 10*old crystal level
+                    this->musketeers[3].setHP(this->musketeers[3].getHP() - 10*(*newCrystal + 1));
+                }
+
+
+            }
+            if(!checkCrystal){
+                // musketeer being attack
+                if(this->musketeers[currentMusketeer].getHP() - damage < 0){
+                    this->musketeers[currentMusketeer].setHP(0);
+                    // jump to healing mode
+                }else{
+                    this->musketeers[currentMusketeer].setHP(this->musketeers[currentMusketeer].getHP() - damage);
+                }
+                // Quezacolt attack
+                if ((this->events[i] % 100) == -11 || this->musketeers[currentMusketeer].getHP() == 0){
+                    currentMusketeer = (currentMusketeer + 1) > 3 ? 0 : currentMusketeer + 1;
+                }
+
+            }else{
+                if(*(this->musketeers[musketeerShareCrystal].getCystalPointer(typeOfCrystal)) > 0){
+                    *this->musketeers[musketeerShareCrystal].getCystalPointer(typeOfCrystal) -= 1 ;
+                    
+                }
+                if(*(this->musketeers[musketeerShareCrystal].getCystalPointer(typeOfCrystal)) == 0){
+                    this->manager->deallocate(this->musketeers[musketeerShareCrystal].getCystalPointer(typeOfCrystal));
+                    this->musketeers[musketeerShareCrystal].setCystalPointer(typeOfCrystal,NULL);
+                }
+            }
+
         }
     }
     
