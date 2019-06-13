@@ -120,6 +120,9 @@ void Battle::struggle() {
 
 
     for(int i = 0; i < this->numOfEvents; i++){
+        int powerOfMonster;
+        // init power of monster
+        // if()
         // pick up a Crystal
         if(this->events[i] / 10 == 1 || this->events[i] / 10 == 2 || this->events[i] / 10 == 3){
             int typeOfCrystal = this->events[i] / 10;
@@ -163,7 +166,7 @@ void Battle::struggle() {
                 }
             }
             // don't have crystal
-            
+            int damage = this->events[i]*(-1)*
         }
     }
     
